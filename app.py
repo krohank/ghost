@@ -85,11 +85,11 @@ def index():
     error = None
     try:
         if request.method == "POST":
-            if "query" in request.form:
-                query = request.form["query"]
-                response = ChatBot(query)
+            query = request.form.get("query", "").strip()
+            if not query:
+                error = "Say something, bestie 💬 Don’t leave me hanging!"
             else:
-                error = "Missing query field in form."
+                response = ChatBot(query)
     except Exception as e:
         error = f"Unexpected error: {e}"
     return render_template("index.html", response=response, error=error)
