@@ -83,16 +83,16 @@ def ChatBot(query):
 def index():
     response = None
     error = None
-    try:
-        if request.method == "POST":
-            query = request.form.get("query", "").strip()
-            if not query:
-                error = "Say something, bestie 💬 Don’t leave me hanging!"
-            else:
-                response = ChatBot(query)
-    except Exception as e:
-        error = f"Unexpected error: {e}"
+
+    if request.method == "POST":
+        query = request.form.get("query", "").strip()
+        if not query:
+            error = "Oops: Say something, bestie 💬 Don’t leave me hanging!"
+        else:
+            response = ChatBot(query)
+
     return render_template("index.html", response=response, error=error)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
