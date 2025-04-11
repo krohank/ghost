@@ -3,10 +3,14 @@ from groq import Groq
 from dotenv import dotenv_values
 import datetime
 from json import load, dump
+import os
 
 # Load environment variables from .env
 env_vars = dotenv_values(".env")
 GroqAPIKey = env_vars.get("GroqAPIKey")
+
+# Ensure the chat log directory exists
+os.makedirs("Data", exist_ok=True)
 
 # Groq client
 client = Groq(api_key=GroqAPIKey)
@@ -78,10 +82,17 @@ def ChatBot(query):
 @app.route("/", methods=["GET", "POST"])
 def index():
     response = None
-    if request.method == "POST":
-        query = request.form["query"]
-        response = ChatBot(query)
-    return render_template("index.html", response=response)
+    error = None
+    try:
+        if request.method == "POST":
+            if "query" in request.form:
+                query = request.form["query"]
+                response = ChatBot(query)
+            else:
+                error = "Missing query field in form."
+    except Exception as e:
+        error = f"Unexpected error: {e}"
+    return render_template("index.html", response=response, error=error)
 
 if __name__ == "__main__":
     app.run(debug=True)
