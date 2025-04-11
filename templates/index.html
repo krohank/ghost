@@ -14,9 +14,9 @@
     </header>
 
     <main>
-      <form method="POST" id="chatForm" autocomplete="off">
+      <form method="POST" action="/" id="chatForm" autocomplete="off">
         <label for="query" class="visually-hidden">Ask Jarvisa</label>
-        <input type="text" name="query" id="query" placeholder="Spill the tea... ☕" required />
+        <input type="text" name="query" id="query" placeholder="Spill the tea... ☕" required value="{{ request.form.query or '' }}" />
         <button type="submit">Send 💌</button>
       </form>
 
