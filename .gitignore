@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.env
+
+# VSCode / Editor folders
+.vscode/
+.idea/
+*.swp
+
+# macOS / Linux / Windows junk files
+.DS_Store
+Thumbs.db
+
+# Flask / Deployment
+instance/
+*.log
+
+# Virtual environments
+venv/
+env/
+ENV/
