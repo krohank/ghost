@@ -14,14 +14,21 @@
     </header>
 
     <main>
-      <form method="POST" id="chatForm">
-        <input type="text" name="query" placeholder="Spill the tea... ☕" required />
+      <form method="POST" id="chatForm" autocomplete="off">
+        <label for="query" class="visually-hidden">Ask Jarvisa</label>
+        <input type="text" name="query" id="query" placeholder="Spill the tea... ☕" required />
         <button type="submit">Send 💌</button>
       </form>
 
       {% if response %}
         <div class="response fade-in">
           <strong>Jarvisa:</strong> {{ response }}
+        </div>
+      {% endif %}
+
+      {% if error %}
+        <div class="error fade-in">
+          <strong>Oops:</strong> {{ error }}
         </div>
       {% endif %}
     </main>
