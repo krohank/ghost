@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvisa 💬</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>✨ Talk to <span>Jarvisa</span> 💁‍♀️</h1>
+      <p class="tagline">Your Gen Z AI bestie is listening 👑</p>
+    </header>
+
+    <main>
+      <form method="POST" id="chatForm">
+        <input type="text" name="query" placeholder="Spill the tea... ☕" required />
+        <button type="submit">Send 💌</button>
+      </form>
+
+      {% if response %}
+        <div class="response fade-in">
+          <strong>Jarvisa:</strong> {{ response }}
+        </div>
+      {% endif %}
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Jarvisa AI. Slay responsibly 💅</p>
+    </footer>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
