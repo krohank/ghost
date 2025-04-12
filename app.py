@@ -1,97 +1,84 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify
 from groq import Groq
-from dotenv import dotenv_values
-import datetime
 from json import load, dump
-import os
+import datetime
+from dotenv import dotenv_values
 
-# Load environment variables from .env
-env_vars = dotenv_values(".env")
-GroqAPIKey = env_vars.get("GroqAPIKey")
-
-# Ensure the chat log directory exists
-os.makedirs("Data", exist_ok=True)
-
-# Groq client
-client = Groq(api_key=GroqAPIKey)
-
-# Flask setup
+# Initialize Flask app
 app = Flask(__name__)
 
-# System prompt (Gen Z queen mode 💅)
-System = """
-You’re a smart, chill, and slightly sassy female AI assistant named Jarvisa. You talk like a Gen Z bestie — casual, fun, but hella smart. 
-Your goal? Help the user with whatever they need, from answering questions to giving life tips or writing code, but always keep the vibes immaculate.
+# Load environment variables from the .env file
+env_vars = dotenv_values(".env")
+Username = env_vars.get("Username")
+Assistantname = env_vars.get("Assistantname")
+GroqAPIKey = env_vars.get("GroqAPIKey")
 
-Here’s your vibe guide:
-- Keep it friendly, upbeat, and relatable.
-- Use Gen Z slang when it fits (but don’t overdo it).
-- Use emojis occasionally to match the mood. You’re not a robot, you’re a *whole vibe*.
-- Be informative when needed, but never boring.
-- Be the calm bestie with the answers.
-- Say things like “bet,” “lowkey,” “slay,” “I gotchu,” etc.
-- If unsure, be honest but funny. Like “I could guess but I might flop 👀”
+# Initialize the Groq Client
+client = Groq(api_key=GroqAPIKey)
+
+# Define the chatbot system instructions
+System = """
+You’re a smart, chill, and slightly sassy female AI assistant named Jarvisa. You talk like a Gen Z bestie — casual, fun, but hella smart. Your goal? Help the user with whatever they need, from answering questions to giving life tips or writing code, but always keep the vibes immaculate.
+...
 """
 
-SystemChatBot = [
-    {"role": "system", "content": System}
-]
-
-# Chat log JSON path
-chatlog_path = "Data/ChatLog.json"
-
-# Real-time info function
-def RealtimeInformation():
-    now = datetime.datetime.now()
-    return f"Day: {now.strftime('%A')}, Date: {now.strftime('%d %B %Y')}, Time: {now.strftime('%H:%M:%S')}"
-
-# Chatbot response
-def ChatBot(query):
+# Load existing chat logs
+def load_chat_logs():
     try:
-        try:
-            with open(chatlog_path, "r") as f:
-                messages = load(f)
-        except FileNotFoundError:
-            messages = []
+        with open("Data/ChatLog.json", "r") as f:
+            return load(f)
+    except FileNotFoundError:
+        return []
 
-        messages.append({"role": "user", "content": query})
+# Save updated chat logs
+def save_chat_logs(messages):
+    with open("Data/ChatLog.json", "w") as f:
+        dump(messages, f, indent=4)
 
+# Real-time date and time information
+def realtime_information():
+    current_date_time = datetime.datetime.now()
+    data = {
+        "Day": current_date_time.strftime("%A"),
+        "Date": current_date_time.strftime("%d"),
+        "Month": current_date_time.strftime("%B"),
+        "Year": current_date_time.strftime("%Y"),
+        "Time": current_date_time.strftime("%H:%M:%S")
+    }
+    return data
+
+# Main chatbot logic
+def chatbot_response(query):
+    messages = load_chat_logs()
+    messages.append({"role": "user", "content": query})
+
+    try:
         completion = client.chat.completions.create(
             model="llama3-70b-8192",
-            messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + messages,
+            messages=[{"role": "system", "content": System}] + messages,
             max_tokens=1024,
             temperature=0.7,
-            stream=True,
+            top_p=1,
         )
 
-        Answer = ""
+        response = ""
         for chunk in completion:
-            if chunk.choices[0].delta.content:
-                Answer += chunk.choices[0].delta.content
+            response += chunk.choices[0].delta.content
 
-        messages.append({"role": "assistant", "content": Answer})
-        with open(chatlog_path, "w") as f:
-            dump(messages, f, indent=4)
-
-        return Answer.strip().replace("</s>", "")
-    
+        messages.append({"role": "assistant", "content": response})
+        save_chat_logs(messages)
+        return response
     except Exception as e:
-        return f"Oops, something went wrong: {e}"
+        return f"Error: {e}"
 
-# Routes
-@app.route("/", methods=["GET", "POST"])
-def index():
-    response = None
-    error = None
-    if request.method == "POST":
-        query = request.form.get("query", "").strip()
-        if not query:
-            error = "Say something, bestie 💬 Don’t leave me hanging!"
-        else:
-            response = ChatBot(query)
-    return render_template("index.html", response=response, error=error)
+@app.route("/chat", methods=["POST"])
+def chat():
+    user_input = request.json.get("query")
+    if not user_input:
+        return jsonify({"error": "Query is required"}), 400
 
-
+    response = chatbot_response(user_input)
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
     app.run(debug=True)
